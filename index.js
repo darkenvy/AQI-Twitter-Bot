@@ -21,12 +21,15 @@ const {
 // });
 
 const CITY_LIST = {
+  // LACY: '46.991758,-122.914258,47.060129,-122.773180',
   SEATTLE: '47.521442,-122.429265,47.658356,-122.254204',
   SPOKANE: '47.605725,-117.495884,47.725771,-117.144242',
   TACOMA: '47.3174508,-122.5433275,47.1709149,-122.3700139',
+  VANCOUVER: '45.618239,-122.689200,45.711620,-122.554300',
+  YAKIMA: '46.351579,-120.899061,46.742791,-120.238636',
 };
 
-const QUERIES = {
+const QUERIES = { // only one query for now. expandable
   REGION:`https://api.waqi.info/map/bounds/?token=${WAQI_TOKEN}&latlng=`,
 };
 
@@ -77,7 +80,8 @@ async function getAvgAqiOfRegion(coordinateRange) {
 }
 
 async function main() {
-  let tweetTextBody = 'AQI PM2.5\n\n';
+  let tweetTextBody = 'AQI PM2.5 Morning Report\n\n';
+  const footer = '\nBell Icon to get notifications\n#Washington #AirQuality #aqi #wawx';
 
   for (let cityName in CITY_LIST) {
     const cityCoordinateRange = CITY_LIST[cityName];
@@ -85,8 +89,12 @@ async function main() {
     const textLine = `${sentenceCase(cityName)}: ${aqi} ${explanationLookup(aqi)}\n`;
     
     // only add city if there is enough space in the tweet.
-    if (tweetTextBody.length + textLine.length <= 280) tweetTextBody += textLine;
+    if (aqi && tweetTextBody.length + textLine.length <= 280) {
+      tweetTextBody += textLine;
+    }
   }
+
+  if (tweetTextBody.length + footer.length <=280) tweetTextBody += footer;
 
   console.log(tweetTextBody);
 }
