@@ -1,0 +1,23 @@
+{
+  "name": "aqi-washington-bot",
+  "version": "1.0.0",
+  "description": "AQI Twitter Bot",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "aqi",
+    "air",
+    "quality",
+    "bot"
+  ],
+  "author": "Reno McKenzie",
+  "license": "MIT",
+  "dependencies": {
+    "axios": "^0.20.0",
+    "dotenv": "^8.2.0",
+    "lodash": "^4.17.20",
+    "twit": "^2.2.11"
+  }
+}
