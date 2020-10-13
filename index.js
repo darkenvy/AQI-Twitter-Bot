@@ -1,5 +1,5 @@
 require('dotenv').config();
-// const Twit = require('twit');
+const Twit = require('twit');
 const axios = require('axios');
 const get = require('lodash/get');
 
@@ -13,12 +13,14 @@ const {
   TWITTER_ACCESS_TOKEN_SECRET,
 } = process.env;
 
-// var twitter = new Twit({
-//   consumer_key: TWITTER_CONSUMER_KEY,
-//   consumer_secret: TWITTER_CONSUMER_SECRET,
-//   access_token: TWITTER_ACCESS_TOKEN,
-//   access_token_secret: TWITTER_ACCESS_TOKEN_SECRET
-// });
+const MAX_TWEET_LENGTH = 280;
+
+var twitter = new Twit({
+  consumer_key: TWITTER_CONSUMER_KEY,
+  consumer_secret: TWITTER_CONSUMER_SECRET,
+  access_token: TWITTER_ACCESS_TOKEN,
+  access_token_secret: TWITTER_ACCESS_TOKEN_SECRET
+});
 
 const CITY_LIST = {
   // LACY: '46.991758,-122.914258,47.060129,-122.773180',
@@ -80,29 +82,46 @@ async function getAvgAqiOfRegion(coordinateRange) {
 }
 
 async function main() {
-  let tweetTextBody = 'AQI PM2.5 Morning Report\n\n';
-  const footer = '\nBell Icon to get notifications\n#Washington #AirQuality #aqi #wawx';
+  let tweetTextBody = 'AQI PM₂.₅ Morning Report\n\n';
+  const hashtags = '\n#Washington #AirQuality #aqi #wawx';
+  const footer = '\nClick Bell-Icon to get daily notifications';
 
+  // ------- Compose Tweet -------- //
   for (let cityName in CITY_LIST) {
     const cityCoordinateRange = CITY_LIST[cityName];
     const aqi = await getAvgAqiOfRegion(cityCoordinateRange);
     const textLine = `${sentenceCase(cityName)}: ${aqi} ${explanationLookup(aqi)}\n`;
     
     // only add city if there is enough space in the tweet.
-    if (aqi && tweetTextBody.length + textLine.length <= 280) {
+    if (aqi && tweetTextBody.length + textLine.length <= MAX_TWEET_LENGTH) {
       tweetTextBody += textLine;
     }
   }
 
-  if (tweetTextBody.length + footer.length <=280) tweetTextBody += footer;
+  // add footer only if there is space after hashtags. but place before hashtags :P
+  if (tweetTextBody.length + footer.length <= MAX_TWEET_LENGTH - hashtags.length) {
+    tweetTextBody += footer;
+  }
 
-  console.log(tweetTextBody);
+  // add hashtags last
+  if (tweetTextBody.length + hashtags.length <= MAX_TWEET_LENGTH) {
+    tweetTextBody += hashtags;
+  }
+
+  // ----------- Tweet ------------ //
+
+  console.log(tweetTextBody)
+  const status = tweetTextBody;
+  twitter.post('statuses/update', { status }, (err, data, response) => {
+    if (err) {
+      console.log(`Error posting tweet @ ${Date()}:\n`, err);
+      return;
+    }
+
+    console.log('Posted tweet @', Date());
+  })
 }
 
 // -------------------------------------------------------------------------- //
 
-(async () => {
-  main();
-  // const res = await getAvgAqiOfRegion(CITY_LIST.TACOMA);
-  // console.log(res);
-})();
+(async () => main())();
