@@ -2,6 +2,8 @@ require('dotenv').config();
 const Twit = require('twit');
 const axios = require('axios');
 const get = require('lodash/get');
+const fs = require('fs');
+const path = require('path');
 
 // -------------------------------------------------------------------------- //
 
@@ -115,10 +117,22 @@ async function main() {
   twitter.post('statuses/update', { status }, (err, data, response) => {
     if (err) {
       console.log(`Error posting tweet @ ${Date()}:\n`, err);
+      fs.writeFileSync(path.join(__dirname, 'out.txt'), `
+        Error posting tweet @ ${Date()}: 
+          ${err}
+        
+        TweetTextBody: ${tweetTextBody}
+      `, 'utf8' );
+
       return;
     }
 
     console.log('Posted tweet @', Date());
+    fs.writeFileSync(path.join(__dirname, 'out.txt'), `
+      Posted tweet @, ${Date()}
+
+      TweetTextBody: ${tweetTextBody}
+    `, 'utf8');
   })
 }
 
