@@ -74,10 +74,15 @@ async function getAvgAqiOfRegion(coordinateRange) {
   if (!apiResult) return null;
 
   // take list of stations and average them together
-  const stations = get(apiResult, 'data', []);
+  let stations = get(apiResult, 'data', []);
+
+  // clean stations from invalid data
+  stations = stations.filter(station => station && !isNaN(parseInt(station.aqi)));
+
   const aqiSum = stations.reduce((accumulator, currentValue) => (
     accumulator + parseInt(get(currentValue, 'aqi', '0'))
   ), 0);
+
   const aqiAvg = (aqiSum / stations.length).toFixed();
 
   return aqiAvg;
@@ -92,10 +97,11 @@ async function main() {
   for (let cityName in CITY_LIST) {
     const cityCoordinateRange = CITY_LIST[cityName];
     const aqi = await getAvgAqiOfRegion(cityCoordinateRange);
+
     const textLine = `${sentenceCase(cityName)}: ${aqi} ${explanationLookup(aqi)}\n`;
     
     // only add city if there is enough space in the tweet.
-    if (aqi && tweetTextBody.length + textLine.length <= MAX_TWEET_LENGTH) {
+    if (aqi && !isNaN(aqi) && tweetTextBody.length + textLine.length <= MAX_TWEET_LENGTH) {
       tweetTextBody += textLine;
     }
   }
